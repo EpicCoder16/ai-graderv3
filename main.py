@@ -9,7 +9,7 @@ import pdfplumber
 from sentence_transformers import SentenceTransformer, util
 import logging
 from pydantic import BaseModel
-from . import db
+import db
 
 app = FastAPI()
 
