@@ -13,7 +13,7 @@ import db
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="frontend", html=True), name="frontend")
+# app.mount("/static", StaticFiles(directory="frontend", html=True), name="frontend")
 
 app.add_middleware(
     CORSMiddleware,
