@@ -3,24 +3,28 @@ from oauth2client.service_account import ServiceAccountCredentials
 import logging
 from datetime import datetime
 import bcrypt
+import os
+import json
 
 # Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-import os
-
-# Get the directory of this file (db.py)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Build the relative path to service_account.json
-CREDS_FILE = os.path.join(BASE_DIR, "service_account.json.json")
 
 # Setup Google Sheets credentials
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-# CREDS_FILE = "service_account.json.json"  # Path to your downloaded credentials file
 SPREADSHEET_NAME = "AI_Grader_Storage"  # Rename to your sheet name
 
-credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
+# Load credentials from environment variable
+google_creds_json = os.getenv('GOOGLE_CREDENTIALS')
+
+if google_creds_json is None:
+    raise ValueError("Missing GOOGLE_CREDENTIALS environment variable!")
+
+# Parse the JSON string into a dictionary
+google_creds_dict = json.loads(google_creds_json)
+
+# Authorize gspread
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(google_creds_dict, SCOPE)
 client = gspread.authorize(credentials)
 sheet = client.open(SPREADSHEET_NAME)
 users_ws = sheet.worksheet("users")
