@@ -314,7 +314,14 @@
                 const result = await response.json();
                 if (response.ok) {
                     alert("Student file uploaded and graded successfully!");
-                    document.getElementById("responseResult").innerHTML = `<div class="score-display">Similarity Score: ${(result.comparison_result.similarity_score * 100).toFixed(2)}%</div>`;
+                    document.getElementById("responseResult").innerHTML = `<div class="score-display">Similarity Score: ${(result.comparison_result.similarity_score * 100).toFixed(2)}%</div>    <div class="result-section">
+        <h3>Matched Points:</h3>
+        <pre>${(result.comparison_result.matched_points || []).join('\n')}</pre>
+    </div>
+    <div class="result-section">
+        <h3>Missed Points:</h3>
+        <pre>${(result.comparison_result.missed_points || []).join('\n')}</pre>
+    </div>`;
                 } else {
                     alert(result.detail || "Upload failed");
                 }
