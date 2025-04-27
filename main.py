@@ -1,7 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 import shutil
 import os
 import docx
@@ -13,11 +11,9 @@ import db
 
 app = FastAPI()
 
-# app.mount("/static", StaticFiles(directory="frontend", html=True), name="frontend")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://epiccoder16.github.io/ai-graderv3/"],
+    allow_origins=["https://epiccoder16.github.io"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -42,10 +38,6 @@ def compare_with_answer_key(extracted_text: str, answer_key: str):
     answer_key_embedding = model.encode(answer_key, convert_to_tensor=True)
     cosine_similarity = util.pytorch_cos_sim(extracted_embedding, answer_key_embedding)
     return {"similarity_score": cosine_similarity.item(), "message": "Comparison complete."}
-
-@app.get("/")
-async def read_root():
-    return FileResponse("../frontend/index.html")
 
 @app.post("/api/upload_answer_key/")
 async def upload_answer_key(file: UploadFile = File(...)):
