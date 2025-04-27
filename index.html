@@ -313,9 +313,9 @@
 
                 const result = await response.json();
                 if (response.ok) {
-                    alert("Student file uploaded and graded successfully!");
-                    document.getElementById("responseResult").innerHTML = `<div class="score-display">Grade: ${result.score}</div>`;
-                } else {
+                    alert("Student file uploaded and graded successfully!");
+                    document.getElementById("responseResult").innerHTML = `<div class="score-display">Similarity Score: ${(result.comparison_result.similarity_score * 100).toFixed(2)}%</div>`;
+                } else {
                     alert(result.detail || "Upload failed");
                 }
             } catch (err) {
