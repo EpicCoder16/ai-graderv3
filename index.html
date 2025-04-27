@@ -281,7 +281,7 @@
             formData.append("file", document.getElementById("answerKey").files[0]);
 
             try {
-                const response = await fetch("https://ai-graderv3.onrender.com/api/upload-answer-key", {
+                const response = await fetch("https://ai-graderv3.onrender.com/api/upload_answer_key/", {
                     method: "POST",
                     body: formData,
                 });
@@ -306,7 +306,7 @@
             formData.append("user_id", currentUserId);
 
             try {
-                const response = await fetch("https://ai-graderv3.onrender.com/api/upload-student-assignment", {
+                const response = await fetch("https://ai-graderv3.onrender.com/api/upload/", {
                     method: "POST",
                     body: formData,
                 });
