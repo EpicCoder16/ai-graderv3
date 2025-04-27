@@ -45,7 +45,7 @@ def register_user(username, password):
 
     hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     new_id = len(users_ws.get_all_values())  # Simple ID logic (assumes header exists)
-    users_ws.append_row([new_id, hashed, username])
+    users_ws.append_row([new_id, username, hashed])
     logger.info(f"User {username} registered successfully")
 
 def login_user(username, password):
