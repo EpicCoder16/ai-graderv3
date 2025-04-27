@@ -37,7 +37,25 @@ def compare_with_answer_key(extracted_text: str, answer_key: str):
     extracted_embedding = model.encode(extracted_text, convert_to_tensor=True)
     answer_key_embedding = model.encode(answer_key, convert_to_tensor=True)
     cosine_similarity = util.pytorch_cos_sim(extracted_embedding, answer_key_embedding)
-    return {"similarity_score": cosine_similarity.item(), "message": "Comparison complete."}
+
+        # New Part: Semantic matching
+    answer_key_sentences = [sentence.strip() for sentence in answer_key.split('.') if sentence.strip()]
+
+    matched_points = []
+    missing_points = []
+
+    extracted_text_embedding = model.encode(extracted_text, convert_to_tensor=True)
+
+    for sentence in answer_key_sentences:
+        sentence_embedding = model.encode(sentence, convert_to_tensor=True)
+        similarity = util.pytorch_cos_sim(sentence_embedding, extracted_text_embedding).item()
+
+        if similarity >= 0.6:  # <-- threshold can be adjusted (0.6 is reasonable)
+            matched_points.append(sentence)
+        else:
+            missing_points.append(sentence)
+    
+    return {"similarity_score": cosine_similarity.item(), "message": "Comparison complete.", "matched_points": matched_points, "missing_points": missing_points}
 
 @app.post("/api/upload_answer_key/")
 async def upload_answer_key(file: UploadFile = File(...)):
