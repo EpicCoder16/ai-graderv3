@@ -8,6 +8,7 @@ from sentence_transformers import SentenceTransformer, util
 import logging
 from pydantic import BaseModel
 import db
+import numpy as np
 
 app = FastAPI()
 
@@ -33,29 +34,47 @@ def extract_text_from_pdf(file_path: str):
     with pdfplumber.open(file_path) as pdf:
         return ''.join([page.extract_text() for page in pdf.pages if page.extract_text()])
 
-def compare_with_answer_key(extracted_text: str, answer_key: str):
+def compare_with_answer_key(extracted_text: str, answer_key: str, sentence_similarity_threshold: float = 0.7):
     extracted_embedding = model.encode(extracted_text, convert_to_tensor=True)
     answer_key_embedding = model.encode(answer_key, convert_to_tensor=True)
     cosine_similarity = util.pytorch_cos_sim(extracted_embedding, answer_key_embedding)
 
-        # New Part: Semantic matching
-    answer_key_sentences = [sentence.strip() for sentence in answer_key.split('.') if sentence.strip()]
+    # New Part: Semantic matching (Improved with original naming)
+    answer_key_sentences = [s.strip() for s in answer_key.split('.') if s.strip()]
+    extracted_sentences = [s.strip() for s in extracted_text.split('.') if s.strip()]
 
     matched_points = []
     missing_points = []
+    max_similarities = []
 
-    extracted_text_embedding = model.encode(extracted_text, convert_to_tensor=True)
+    if answer_key_sentences and extracted_sentences:
+        answer_key_embeddings = model.encode(answer_key_sentences, convert_to_tensor=True)
+        extracted_embeddings = model.encode(extracted_sentences, convert_to_tensor=True)
 
-    for sentence in answer_key_sentences:
-        sentence_embedding = model.encode(sentence, convert_to_tensor=True)
-        similarity = util.pytorch_cos_sim(sentence_embedding, extracted_text_embedding).item()
+        for i, answer_embedding in enumerate(answer_key_embeddings):
+            max_similarity = -1
+            similarities = util.pytorch_cos_sim(answer_embedding, extracted_embeddings)[0].cpu().numpy()
+            max_similarity = np.max(similarities)
 
-        if similarity >= 0.6:  # <-- threshold can be adjusted (0.6 is reasonable)
-            matched_points.append(sentence)
-        else:
-            missing_points.append(sentence)
-    
-    return {"similarity_score": cosine_similarity.item(), "message": "Comparison complete.", "matched_points": matched_points, "missing_points": missing_points}
+            max_similarities.append(max_similarity)
+
+            if max_similarity >= sentence_similarity_threshold:
+                matched_points.append(answer_key_sentences[i])
+            else:
+                missing_points.append(answer_key_sentences[i])
+    elif answer_key_sentences:
+        missing_points.extend(answer_key_sentences)
+        max_similarities.extend([0.0] * len(answer_key_sentences))
+
+    overall_semantic_coverage = np.mean(max_similarities) if max_similarities else 0.0
+
+    return {
+        "similarity_score": cosine_similarity.item(),
+        "overall_semantic_coverage": overall_semantic_coverage,
+        "message": "Comparison complete with semantic point analysis.",
+        "matched_points": matched_points,
+        "missing_points": missing_points
+    }
 
 @app.post("/api/upload_answer_key/")
 async def upload_answer_key(file: UploadFile = File(...)):
