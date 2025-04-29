@@ -8,4 +8,4 @@ python-multipart
 gspread
 oauth2client
 bcrypt
-
+numpy
