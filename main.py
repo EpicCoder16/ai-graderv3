@@ -9,6 +9,8 @@ import logging
 from pydantic import BaseModel
 import db
 import numpy as np
+from fastapi.responses import JSONResponse
+from fastapi.requests import Request
 
 app = FastAPI()
 
@@ -19,6 +21,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(request: Request, rest_of_path: str = ""):
+    return JSONResponse(status_code=200, content={})
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 answer_key_text = None
